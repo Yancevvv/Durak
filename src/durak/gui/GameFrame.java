@@ -70,20 +70,16 @@ public class GameFrame extends JFrame {
         try {
             if (!game.canUseSpy()) {
                 JOptionPane.showMessageDialog(this,
-                        "Шпион недоступен. Можно использовать каждый " +
-                                game.SPY_ACTIVATION_ROUND + "-й раунд, пока есть карты в колоде.",
+                        "Шпион доступен только каждый 5-й раунд, пока есть карты в колоде",
                         "Шпион недоступен",
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            Player opponent = (game.getCurrentPlayer() == game.getPlayer1())
-                    ? game.getPlayer2() : game.getPlayer1();
-            Card spyInfo = game.getSpyInfo(opponent);
-
+            Card spyInfo = game.getSpyInfo(game.getDefendingPlayer());
             if (spyInfo != null) {
                 JOptionPane.showMessageDialog(this,
-                        "Шпион сообщает: у противника есть " + spyInfo,
+                        "Шпион сообщает: верхняя карта в колоде - " + spyInfo,
                         "Информация шпиона",
                         JOptionPane.INFORMATION_MESSAGE);
                 game.setSpyUsed();

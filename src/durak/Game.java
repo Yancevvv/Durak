@@ -57,17 +57,15 @@ public class Game {
         return spy != null;
     }
     public Card getSpyInfo(Player player) {
-        if (player == null || deck.isEmpty() ||
-                spyRoundCounter % SPY_ACTIVATION_ROUND != 0 ||
-                spyUsedThisRound) {
+        if (player == null || deck.isEmpty() || spyUsedThisRound) {
             return null;
         }
-        return spy.collectInformation(player);
+        return spy.collectInformation(player, deck, spyRoundCounter);
     }
     public boolean canUseSpy() {
         return !deck.isEmpty() &&
-                spyRoundCounter % SPY_ACTIVATION_ROUND == 0 &&
-                !spyUsedThisRound;
+                spyRoundCounter % SPY_ACTIVATION_ROUND == 0 && // Каждый 3-й раунд
+                !spyUsedThisRound; // Шпион ещё не использован в этом раунде
     }
     public void setSpyUsed() {
         this.spyUsedThisRound = true;
@@ -111,10 +109,7 @@ public class Game {
     }
 
     public void makeMove(Player player, Card card) throws IllegalMoveException {
-        // Шпион не может быть использован во время хода
-        if (spyUsedThisRound) {
-            throw new IllegalMoveException("Шпион уже использован в этом раунде");
-        }
+
         if (!player.hasCard(card)) {
             throw new IllegalMoveException("У вас нет такой карты.");
         }

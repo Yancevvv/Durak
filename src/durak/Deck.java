@@ -64,6 +64,12 @@ public class Deck {
             }
         }
     }
+    public Card peekTopCard() {
+        if (cards.isEmpty()) {
+            return null;
+        }
+        return cards.get(0); // Возвращаем верхнюю карту без удаления
+    }
     public void addCard(Card card) {
         if (card != null) {
             cards.add(card);

@@ -10,6 +10,7 @@ public class SpyTest {
 
     private Spy spy;
     private Player player;
+    private Deck deck;
 
     @Before
     public void setUp() {
@@ -28,7 +29,7 @@ public class SpyTest {
     @Test
     public void testCollectInformation_Successful() {
         // Шпион должен успешно собрать информацию, так как efficiency = 1.0
-        Card result = spy.collectInformation(player);
+        Card result = spy.collectInformation(player, deck, 5);
         assertNotNull("Шпион не смог собрать информацию", result);
         assertTrue("Карта не принадлежит игроку", player.getCards().contains(result));
     }
@@ -39,7 +40,7 @@ public class SpyTest {
         Spy ineffectiveSpy = new Spy(0.0f);
 
         // Шпион не должен собрать информацию
-        Card result = ineffectiveSpy.collectInformation(player);
+        Card result = ineffectiveSpy.collectInformation(player, deck, 5);
         assertNull("Шпион собрал информацию, хотя не должен был", result);
     }
 
@@ -50,7 +51,7 @@ public class SpyTest {
         emptyPlayer.setCards(new ArrayList<>());
 
         // Шпион не должен собрать информацию, если у игрока нет карт
-        Card result = spy.collectInformation(emptyPlayer);
+        Card result = spy.collectInformation(emptyPlayer, deck, 5);
         assertNull("Шпион собрал информацию, хотя у игрока нет карт", result);
     }
 
@@ -61,9 +62,9 @@ public class SpyTest {
         Spy highEfficiencySpy = new Spy(1.0f);
 
         // При efficiency = 0.0 шпион не должен собирать информацию
-        assertNull(lowEfficiencySpy.collectInformation(player));
+        assertNull(lowEfficiencySpy.collectInformation(player, deck, 5));
 
         // При efficiency = 1.0 шпион всегда должен собирать информацию
-        assertNotNull(highEfficiencySpy.collectInformation(player));
+        assertNotNull(highEfficiencySpy.collectInformation(player, deck, 5));
     }
 }
