@@ -13,7 +13,7 @@ public class TablePanel extends JPanel {
     public TablePanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(0, 100, 0));
-        setPreferredSize(new Dimension(800, 250)); // Чётко заданный размер
+        setPreferredSize(new Dimension(800, 250));
     }
 
     public void updateTable(Table table) {
@@ -61,7 +61,7 @@ public class TablePanel extends JPanel {
     }
 
     public void updateTable(List<Card> cards, Card highlighted) {
-        // Старый метод для совместимости
+
         this.highlightedCard = highlighted;
         removeAll();
 

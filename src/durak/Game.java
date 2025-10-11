@@ -24,7 +24,7 @@ public class Game {
         this.player1 = new Player();
         this.player2 = new Player();
         this.table = new Table();
-        this.spy = new Spy(0.7f); // 70% эффективность
+        this.spy = new OpponentSpy(0.8f); // Только карты противника
         deck.distributingCards(List.of(player1, player2));
         // Первым ходит игрок с младшим козырем
         currentPlayer = findFirstAttacker();
