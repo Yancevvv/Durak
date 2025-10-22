@@ -18,6 +18,10 @@ public class GameFrame extends JFrame {
     private JButton endAttackBtn;
     private JButton takeCardsBtn;
     private JButton spyButton;
+    private JComboBox<Spy.SpyMode> spyModeComboBox;
+    private JTextField suitTextField;
+    private JTextField rankTextField;
+    private JTextField countTextField;
     public GameFrame() {
         game = new Game(); // Инициализация игровой логики
         setupUI();
@@ -43,7 +47,8 @@ public class GameFrame extends JFrame {
         add(tablePanel, BorderLayout.CENTER);
 
         // Панель действий (восток)
-        JPanel actionPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        JPanel actionPanel = new JPanel(new GridLayout(0, 2, 10, 5)); // 2 столбца, отступы: горизонтальный 10, вертикальный 5
+        actionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         endAttackBtn = new JButton("Завершить атаку");
         takeCardsBtn = new JButton("Взять карты");
         JButton menuBtn = new JButton("Меню");
@@ -52,47 +57,113 @@ public class GameFrame extends JFrame {
         takeCardsBtn.addActionListener(this::handleTakeCards);
         menuBtn.addActionListener(e -> returnToMenu());
 
+        // Основные кнопки
+        actionPanel.add(new JLabel("")); // пустая ячейка для выравнивания
         actionPanel.add(endAttackBtn);
+        actionPanel.add(new JLabel(""));
         actionPanel.add(takeCardsBtn);
+        actionPanel.add(new JLabel(""));
         actionPanel.add(menuBtn);
-        add(actionPanel, BorderLayout.EAST);
+        // Настройка шпиона
+        spyModeComboBox = new JComboBox<>(Spy.SpyMode.values());
+        suitTextField = new JTextField("Hearts"); // Масть
+        rankTextField = new JTextField("ACE");    // Достоинство
+        countTextField = new JTextField("1");     // Количество
+        spyButton = new JButton("Шпионить");
+        spyButton.addActionListener(this::handleSpyAction);
 
+        // Добавляем элементы шпиона
+        actionPanel.add(new JLabel("Режим шпиона:"));
+        actionPanel.add(spyModeComboBox);
+        actionPanel.add(new JLabel("Масть:"));
+        actionPanel.add(suitTextField);
+        actionPanel.add(new JLabel("Достоинство:"));
+        actionPanel.add(rankTextField);
+        actionPanel.add(new JLabel("Количество:"));
+        actionPanel.add(countTextField);
+        actionPanel.add(spyButton);
+
+        add(actionPanel, BorderLayout.EAST);
         // Панель игрока (юг)
         playerPanel = new PlayerPanel(game.getCurrentPlayer(), this::handleCardClick);
         add(playerPanel, BorderLayout.SOUTH);
-
-        // Добавляем кнопку шпиона в панель действий
-        spyButton = new JButton("Шпионить");
-        spyButton.addActionListener(this::handleSpyAction);
-        actionPanel.add(spyButton);
     }
     private void handleSpyAction(ActionEvent e) {
         try {
             if (!game.canUseSpy()) {
                 JOptionPane.showMessageDialog(this,
-                        "Шпион доступен только каждый 5-й раунд, пока есть карты в колоде",
+                        "Шпион доступен только каждый " + game.SPY_ACTIVATION_ROUND +
+                                "-й раунд, пока есть карты в колоде",
                         "Шпион недоступен",
                         JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            Card spyInfo = game.getSpyInfo(game.getDefendingPlayer());
-            if (spyInfo != null) {
-                JOptionPane.showMessageDialog(this,
-                        "Шпион сообщает: верхняя карта в колоде - " + spyInfo,
-                        "Информация шпиона",
-                        JOptionPane.INFORMATION_MESSAGE);
-                game.setSpyUsed();
+            // Устанавливаем параметры шпиона
+            Spy.SpyMode mode = (Spy.SpyMode) spyModeComboBox.getSelectedItem();
+            game.getSpy().setMode(mode);
+
+            Suit targetSuit = null;
+            Rank targetRank = null;
+
+            if (mode == Spy.SpyMode.SUIT || mode == Spy.SpyMode.COUNT) {
+                String suitName = suitTextField.getText().toUpperCase();
+                targetSuit = Suit.valueOf(suitName);
+                game.getSpy().setTargetSuit(targetSuit);
+            }
+            if (mode == Spy.SpyMode.RANK || mode == Spy.SpyMode.COUNT) {
+                String rankName = rankTextField.getText().toUpperCase();
+                targetRank = Rank.valueOf(rankName);
+                game.getSpy().setTargetRank(targetRank);
+            }
+
+            // Получаем информацию от шпиона
+            Player opponent = (game.getCurrentPlayer() == game.getPlayer1())
+                    ? game.getPlayer2() : game.getPlayer1();
+            int count = Integer.parseInt(countTextField.getText());
+            List<Card> spyInfo = game.getSpyInfo(opponent, count);
+
+            String message;
+            if (mode == Spy.SpyMode.COUNT) {
+                // Отображаем только количество
+                if (targetSuit != null) {
+                    message = "У противника " + spyInfo.size() + " карт(ы) масти " + targetSuit.getName();
+                } else if (targetRank != null) {
+                    message = "У противника " + spyInfo.size() + " карт(ы) достоинства " + targetRank;
+                } else {
+                    message = "Не задана масть или достоинство для подсчёта.";
+                }
             } else {
+                // Отображаем список карт (для RANDOM_CARD, SUIT, RANK)
+                if (spyInfo.isEmpty()) {
+                    message = "Шпиону не удалось получить информацию";
+                } else {
+                    StringBuilder sb = new StringBuilder("Шпион сообщает:\n");
+                    for (Card card : spyInfo) {
+                        sb.append("• ").append(card).append("\n");
+                    }
+                    message = sb.toString();
+                }
+            }
+
+            if (spyInfo.isEmpty() && mode != Spy.SpyMode.COUNT) {
                 JOptionPane.showMessageDialog(this,
                         "Шпиону не удалось получить информацию",
                         "Информация шпиона",
                         JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        message,
+                        "Информация шпиона",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
+
+            game.setSpyUsed();
             updateGameState();
+
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Ошибка: " + ex.getMessage(),
+                    "Ошибка при использовании шпиона: " + ex.getMessage(),
                     "Ошибка",
                     JOptionPane.ERROR_MESSAGE);
         }

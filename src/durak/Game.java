@@ -3,6 +3,7 @@ import durak.gui.MainMenuFrame;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class Game {
     private Deck deck;
@@ -24,7 +25,8 @@ public class Game {
         this.player1 = new Player();
         this.player2 = new Player();
         this.table = new Table();
-        this.spy = new OpponentSpy(0.8f); // Только карты противника
+        this.spy = new Spy(1f);
+
         deck.distributingCards(List.of(player1, player2));
         // Первым ходит игрок с младшим козырем
         currentPlayer = findFirstAttacker();
@@ -53,14 +55,17 @@ public class Game {
     public Player getPlayer2() {
         return player2;
     }
+    public Spy getSpy(){return spy;}
     public boolean hasSpy() {
         return spy != null;
     }
-    public Card getSpyInfo(Player player) {
-        if (player == null || deck.isEmpty() || spyUsedThisRound) {
-            return null;
+    public List<Card> getSpyInfo(Player player, int count) {
+        if (player == null || deck.isEmpty() ||
+                spyRoundCounter % SPY_ACTIVATION_ROUND != 0 ||
+                spyUsedThisRound) {
+            return Collections.emptyList();
         }
-        return spy.collectInformation(player, deck, spyRoundCounter);
+        return spy.collectInformation(player, deck, count);
     }
     public boolean canUseSpy() {
         return !deck.isEmpty() &&
