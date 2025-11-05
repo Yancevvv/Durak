@@ -1,5 +1,7 @@
 package durak;
 import durak.gui.MainMenuFrame;
+import durak.strategies.RandomCardStrategy;
+
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,8 @@ public class Game {
         this.player1 = new Player();
         this.player2 = new Player();
         this.table = new Table();
-        this.spy = new Spy(1f);
+        // Шпион по умолчанию - случайная карта из руки
+        this.spy = new RandomCardSpy(1f, Spy.Source.HAND);
 
         deck.distributingCards(List.of(player1, player2));
         // Первым ходит игрок с младшим козырем
@@ -33,7 +36,10 @@ public class Game {
         defendingPlayer = (currentPlayer == player1) ? player2 : player1;
         isAttackingPhase = true;
     }
-
+    // Метод для смены шпиона
+    public void setSpy(Spy newSpy) {
+        this.spy = newSpy;
+    }
     public Player getCurrentPlayer() {
         return currentPlayer;
     }
@@ -59,13 +65,13 @@ public class Game {
     public boolean hasSpy() {
         return spy != null;
     }
-    public List<Card> getSpyInfo(Player player, int count) {
-        if (player == null || deck.isEmpty() ||
-                spyRoundCounter % SPY_ACTIVATION_ROUND != 0 ||
-                spyUsedThisRound) {
+    public List<Card> getSpyInfo() {
+        if (deck.isEmpty() || spyRoundCounter % SPY_ACTIVATION_ROUND != 0 || spyUsedThisRound) {
             return Collections.emptyList();
         }
-        return spy.collectInformation(player, deck, count);
+
+        Player opponent = (currentPlayer == player1) ? player2 : player1;
+        return spy.collectInformation(opponent, deck);
     }
     public boolean canUseSpy() {
         return !deck.isEmpty() &&
