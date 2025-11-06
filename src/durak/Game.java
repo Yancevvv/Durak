@@ -1,7 +1,5 @@
 package durak;
 import durak.gui.MainMenuFrame;
-import durak.strategies.RandomCardStrategy;
-
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,12 +64,12 @@ public class Game {
         return spy != null;
     }
     public List<Card> getSpyInfo() {
-        if (deck.isEmpty() || spyRoundCounter % SPY_ACTIVATION_ROUND != 0 || spyUsedThisRound) {
+        if (deck.isEmpty() ||
+                spyRoundCounter % SPY_ACTIVATION_ROUND != 0 ||
+                spyUsedThisRound) {
             return Collections.emptyList();
         }
-
-        Player opponent = (currentPlayer == player1) ? player2 : player1;
-        return spy.collectInformation(opponent, deck);
+        return spy.collectInformation(this); // ← передаём игру
     }
     public boolean canUseSpy() {
         return !deck.isEmpty() &&
